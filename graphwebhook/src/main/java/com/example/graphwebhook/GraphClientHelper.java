@@ -32,6 +32,7 @@ public class GraphClientHelper {
 
         final var logger = new DefaultLogger();
         logger.setLoggingLevel(LoggerLevel.ERROR);
+//        .ERROR
 
         return GraphServiceClient.builder().authenticationProvider(authProvider).logger(logger)
                 .buildClient();
