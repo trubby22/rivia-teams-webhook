@@ -37,6 +37,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+import java.util.Map;
+
 @RestController
 public class ListenController {
 
@@ -107,7 +112,8 @@ public class ListenController {
 
     System.out.println("New notification received");
     System.out.println();
-//    System.out.println(jsonPayload);
+    System.out.println(jsonPayload);
+    System.out.println();
 
     // Deserialize the JSON body into a ChangeNotificationCollection
     final var serializer = new DefaultSerializer(new DefaultLogger());
@@ -246,24 +252,6 @@ public class ListenController {
     Objects.requireNonNull(notification);
     Objects.requireNonNull(subscription);
 
-//    final var oauthClient =
-//        authorizedClientService.loadAuthorizedClient("apponly", subscription.userId);
-
-//    final var graphClient =
-//        GraphClientHelper.getGraphClient(WatchController.oauthClient2);
-//    ChatMessage chatMessageTemp = new ChatMessage();
-//    ItemBody body = new ItemBody();
-//    int randomNum = ThreadLocalRandom.current().nextInt(0, 100 + 1);
-//    body.content = "Hello " + randomNum;
-//    chatMessageTemp.body = body;
-//
-//    graphClient
-//        .teams("b158572b-3596-4340-927e-659fe6d916d0")
-//        .channels("19:403409664c6249149d53e882a7647df7@thread.tacv2")
-//        .messages()
-//        .buildRequest()
-//        .post(chatMessageTemp);
-
     // Decrypt the encrypted key from the notification
     final var decryptedKey =
         certificateStore.getEncryptionKey(notification.encryptedContent.dataKey);
@@ -276,7 +264,9 @@ public class ListenController {
       // Decrypt the data using the decrypted key
       final var decryptedData =
           certificateStore.getDecryptedData(decryptedKey, notification.encryptedContent.data);
-      //      System.out.println(decryptedData);
+      System.out.println(decryptedData);
+      System.out.println();
+
       //       Deserialize the decrypted JSON into a ChatMessage
       final var serializer = new DefaultSerializer(new DefaultLogger());
       final var chatMessage = serializer.deserializeObject(decryptedData, ChatMessage.class);
@@ -285,7 +275,7 @@ public class ListenController {
           .getRoomOperations(subscription.subscriptionId)
           .sendEvent("notificationReceived",
               new NewChatMessageNotification(chatMessage, subscription,
-                  authorizedClientService, jsonPayload));
+                  authorizedClientService, decryptedData));
     }
   }
 

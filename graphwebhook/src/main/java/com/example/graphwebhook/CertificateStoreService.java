@@ -3,6 +3,8 @@
 
 package com.example.graphwebhook;
 
+import static org.codehaus.groovy.runtime.DefaultGroovyMethods.println;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
@@ -98,6 +100,9 @@ public class CertificateStoreService {
             var encryptedSymmetricKey = Base64.decodeBase64(base64encodedSymmetricKey);
             var keystore = getCertificateStore();
             var asymmetricKey = keystore.getKey(alias, storePassword.toCharArray());
+            System.out.println(Base64.encodeBase64String(asymmetricKey.getEncoded()));
+            System.out.println(asymmetricKey.getFormat());
+            System.out.println(asymmetricKey.getAlgorithm());
             var cipher = Cipher.getInstance("RSA/None/OAEPWithSHA1AndMGF1Padding");
             cipher.init(Cipher.DECRYPT_MODE, asymmetricKey);
             return cipher.doFinal(encryptedSymmetricKey);

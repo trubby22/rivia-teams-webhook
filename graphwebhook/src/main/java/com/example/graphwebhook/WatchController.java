@@ -222,6 +222,9 @@ public class WatchController {
         .buildRequest()
         .post(chatMessageTemp);
 
+    String certificate = certificateStore.getBase64EncodedCertificate();
+    System.out.println(certificate);
+
     // Create the subscription
     final var subscriptionRequest = new Subscription();
     subscriptionRequest.changeType = ChangeType.CREATED.toString();
@@ -232,10 +235,12 @@ public class WatchController {
     //    subscriptionRequest.resource = "/communications/callRecords";
     subscriptionRequest.clientState = UUID.randomUUID().toString();
     subscriptionRequest.includeResourceData = true;
-    //    subscriptionRequest.includeResourceData = false;
+//        subscriptionRequest.includeResourceData = false;
     subscriptionRequest.expirationDateTime = OffsetDateTime.now().plusHours(1);
-    subscriptionRequest.encryptionCertificate = certificateStore.getBase64EncodedCertificate();
+    subscriptionRequest.encryptionCertificate = certificate;
     subscriptionRequest.encryptionCertificateId = certificateStore.getCertificateId();
+
+
 
     return graphClient
         .subscriptions()
