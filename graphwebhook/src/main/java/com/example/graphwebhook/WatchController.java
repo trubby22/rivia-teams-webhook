@@ -238,7 +238,7 @@ public class WatchController {
     subscriptionRequest.includeResourceData = true;
 //        subscriptionRequest.includeResourceData = false;
     subscriptionRequest.expirationDateTime =
-        OffsetDateTime.now().plusMinutes(10);
+        OffsetDateTime.now().plusMinutes(55);
     subscriptionRequest.encryptionCertificate = certificate;
     subscriptionRequest.encryptionCertificateId = certificateStore.getCertificateId();
 
