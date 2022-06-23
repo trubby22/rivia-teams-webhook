@@ -3,14 +3,11 @@
 
 package com.example.graphwebhook;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.graph.models.BodyType;
 import com.microsoft.graph.models.ChatMessage;
 import com.microsoft.graph.models.ChatMessageAttachment;
-import com.microsoft.graph.models.EventMessageDetail;
 import com.microsoft.graph.models.ItemBody;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -20,10 +17,7 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.apache.http.entity.ContentType;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -52,6 +46,12 @@ public class NewChatMessageNotification {
 
     @SerializedName("webUrl")
     String webUrl;
+
+    @SerializedName("replyToId")
+    String replyToId;
+
+    @SerializedName("channelIdentity")
+    ChannelIdentity channelIdentity;
   }
 
   private class EventDetail {
@@ -83,6 +83,14 @@ public class NewChatMessageNotification {
     String id;
   }
 
+  private class ChannelIdentity {
+    @SerializedName("teamId")
+    String teamId;
+
+    @SerializedName("channelId")
+    String channelId;
+  }
+
   private static class Meeting {
     @SerializedName("title")
     String title;
@@ -110,25 +118,22 @@ public class NewChatMessageNotification {
   }
 
   public NewChatMessageNotification(
-      @NonNull ChatMessage message,
-      @NonNull final SubscriptionRecord subscription,
-      @Autowired OAuth2AuthorizedClientService authorizedClientService,
-      String decryptedData)
-      throws IOException {
-    Objects.requireNonNull(message);
+      //      @NonNull ChatMessage message,
+      //      @NonNull final SubscriptionRecord subscription,
+      //      @Autowired OAuth2AuthorizedClientService authorizedClientService,
+      String decryptedData) throws IOException {
     System.out.println("New message received");
     SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+    Gson gson = new Gson();
+    DecryptedResourceData decryptedResourceData =
+        gson.fromJson(decryptedData, DecryptedResourceData.class);
 
-    EventMessageDetail eventDetail = message.eventDetail;
-    if (eventDetail != null) {
-      String oDataType = eventDetail.oDataType;
-      System.out.println(oDataType);
+    EventDetail eventDetail = decryptedResourceData.eventDetail;
+    if (eventDetail != null && eventDetail.odataType != null) {
+      String odataType = eventDetail.odataType;
+      System.out.println(odataType);
 
-      assert oDataType != null;
-      if (oDataType.contains("callEndedEventMessageDetail")) {
-        Gson gson = new Gson();
-        DecryptedResourceData decryptedResourceData =
-            gson.fromJson(decryptedData, DecryptedResourceData.class);
+      if (odataType.contains("callEndedEventMessageDetail")) {
         OffsetDateTime endTimeTemp = OffsetDateTime.parse(decryptedResourceData.createdDateTime);
         int endTime = (int) endTimeTemp.toEpochSecond();
         Duration duration = Duration.parse(decryptedResourceData.eventDetail.callDuration);
@@ -140,25 +145,15 @@ public class NewChatMessageNotification {
                 .toList();
         String organizerId = decryptedResourceData.eventDetail.initiator.user.id;
         String title = "Teams Meeting";
-
-        System.out.println(title);
-        System.out.println(startTime);
-        System.out.println(endTime);
-        System.out.println(organizerId);
-        System.out.println(participants);
-
         Meeting meeting = new Meeting(title, startTime, endTime, organizerId, participants);
-
         String body = gson.toJson(meeting);
         System.out.println(body);
-
-        String tenantIdTemp =
+        String tenantId =
             decryptedResourceData.webUrl.split("tenantId=")[1].split("&createdTime=")[0];
-        String tenantId = tenantIdTemp.substring(1, tenantIdTemp.length() - 1);
 
         var sdkHttpRequestBuilder =
             SdkHttpRequest.builder()
-                .uri(URI.create("https://api.rivia.me/meetings?tenant=" + tenantId))
+                .uri(URI.create("https://api.rivia.me/meetings"))
                 .method(SdkHttpMethod.POST)
                 .appendRawQueryParameter("tenant", tenantId)
                 .appendHeader("Content-Type", "application/json");
@@ -171,46 +166,39 @@ public class NewChatMessageNotification {
         }
         HttpExecuteResponse response =
             httpClient.prepareRequest(httpExecuteRequestBuilder.build()).call();
+        int statusCode = response.httpResponse().statusCode();
+        String responseBody =
+            new String(
+                response.responseBody().get().delegate().readAllBytes(), StandardCharsets.UTF_8);
         if (!response.httpResponse().isSuccessful()) {
-          return;
+          throw new Error(statusCode + responseBody);
         }
+        System.out.println(statusCode);
+        System.out.println(responseBody);
 
         ChatMessage chatMessage = new ChatMessage();
-        ItemBody messageBody = new ItemBody();
-        messageBody.contentType = BodyType.HTML;
-        messageBody.content =
-            "Please review the meeting. <attachment id=\"153fa47d-18c9-4179-be08-9879815a9f90\"></attachment>";
-        chatMessage.body = messageBody;
-        LinkedList<ChatMessageAttachment> attachmentsList = new LinkedList<ChatMessageAttachment>();
+        chatMessage.subject = null;
+        ItemBody itemBody = new ItemBody();
+        itemBody.contentType = BodyType.HTML;
+        itemBody.content = "<attachment id=\"74d20c7f34aa4a7fb74e2b30004247c5\"></attachment>";
+        chatMessage.body = itemBody;
+        LinkedList<ChatMessageAttachment> attachmentsList = new LinkedList<>();
         ChatMessageAttachment attachments = new ChatMessageAttachment();
-        attachments.id = "153fa47d-18c9-4179-be08-9879815a9f90";
-        attachments.contentType = "reference";
-        attachments.contentUrl = "https://app.rivia.me";
-        attachments.name = "app.rivia.me";
+        attachments.id = "74d20c7f34aa4a7fb74e2b30004247c5";
+        attachments.contentType = "application/vnd.microsoft.card.thumbnail";
+        attachments.contentUrl = null;
+        attachments.content = "{\n  \"subtitle\": \"<h3>Please rate the meeting</h3>\",\n  \"text\": \"<a href=\\\"https://app.rivia.me\\\">app.rivia.me</a>\"\n}";
+        attachments.name = null;
+        attachments.thumbnailUrl = null;
         attachmentsList.add(attachments);
         chatMessage.attachments = attachmentsList;
 
         final var graphClient = GraphClientHelper.getGraphClient(WatchController.oauthClient2);
 
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode rootNode = mapper.readTree(decryptedData);
-        String data = rootNode.get("value").get(0).get("resource").asText();
-        System.out.println();
-        System.out.println(data);
-
-        String teamIdTemp = data.split("teams")[1].split("/channels")[0];
-        String teamId = teamIdTemp.substring(2, teamIdTemp.length() - 2);
-
-        String channelIdTemp = data.split("/channels")[1].split("/messages")[0];
-        String channelId = channelIdTemp.substring(2, channelIdTemp.length() - 2);
-
-        String messageIdTemp = data.split("/messages")[1].split("/replies")[0];
-        String messageId = messageIdTemp.substring(2, messageIdTemp.length() - 2);
-
         graphClient
-            .teams(teamId)
-            .channels(channelId)
-            .messages(messageId)
+            .teams(decryptedResourceData.channelIdentity.teamId)
+            .channels(decryptedResourceData.channelIdentity.channelId)
+            .messages(decryptedResourceData.replyToId)
             .replies()
             .buildRequest()
             .post(chatMessage);

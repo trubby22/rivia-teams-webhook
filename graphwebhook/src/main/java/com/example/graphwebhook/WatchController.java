@@ -74,12 +74,12 @@ public class WatchController {
     body.content = "Hello from Java";
     chatMessageTemp.body = body;
 
-    graphClient
-        .teams("b158572b-3596-4340-927e-659fe6d916d0")
-        .channels("19:403409664c6249149d53e882a7647df7@thread.tacv2")
-        .messages()
-        .buildRequest()
-        .post(chatMessageTemp);
+//    graphClient
+//        .teams("b158572b-3596-4340-927e-659fe6d916d0")
+//        .channels("19:403409664c6249149d53e882a7647df7@thread.tacv2")
+//        .messages()
+//        .buildRequest()
+//        .post(chatMessageTemp);
 
     // Get the authenticated user's info
     final var userFuture =
@@ -95,7 +95,8 @@ public class WatchController {
     subscriptionRequest.clientState = UUID.randomUUID().toString();
     //    subscriptionRequest.includeResourceData = false;
     subscriptionRequest.includeResourceData = true;
-    subscriptionRequest.expirationDateTime = OffsetDateTime.now().plusMinutes(1);
+    subscriptionRequest.expirationDateTime =
+        OffsetDateTime.now().plusMinutes(5);
     subscriptionRequest.encryptionCertificate = certificateStore.getBase64EncodedCertificate();
     subscriptionRequest.encryptionCertificateId = certificateStore.getCertificateId();
 
@@ -170,9 +171,9 @@ public class WatchController {
 
     WatchController.oauthClient2 = oauthClient2;
 
-    System.out.println("1");
+//    System.out.println("1");
     final var graphClient = GraphClientHelper.getGraphClient(oauthClient);
-    System.out.println("2");
+//    System.out.println("2");
 
     //    ChatMessage chatMessageTemp = new ChatMessage();
     //    ItemBody body = new ItemBody();
@@ -186,27 +187,27 @@ public class WatchController {
     //        .buildRequest()
     //        .post(chatMessageTemp);
 
-    System.out.println("2.5");
+//    System.out.println("2.5");
 
     // Apps are only allowed one subscription to the /teams/getAllMessages resource
     // If we already had one, delete it so we can create a new one
     //    APP_ONLY
     //    final var existingSubscriptions =
-    final var existingSubscriptions =
-        subscriptionStore.getSubscriptionsForUser("a69ce41a-195f-44c5-94d8-215f0f01861a");
+//    final var existingSubscriptions =
+//        subscriptionStore.getSubscriptionsForUser("a69ce41a-195f-44c5-94d8-215f0f01861a");
     //    final var subscriptionObject =
     //        Objects.requireNonNull(graphClient.subscriptions().buildRequest().get());
     //    System.out.println(subscriptionObject);
     //    System.out.println(subscriptionObject.getCount());
     //    System.out.println(subscriptionObject.getCurrentPage());
     //    final var existingSubscriptions = subscriptionObject.getCurrentPage();
-    System.out.println("3");
-    System.out.println("Existing subscriptions: " + existingSubscriptions);
-    System.out.println("Number of existing subscriptions: " + existingSubscriptions.size());
-    for (final var sub : existingSubscriptions) {
-      graphClient.subscriptions(sub.subscriptionId).buildRequest().delete();
-      System.out.println("Deleting subscription: " + sub.subscriptionId);
-    }
+//    System.out.println("3");
+//    System.out.println("Existing subscriptions: " + existingSubscriptions);
+//    System.out.println("Number of existing subscriptions: " + existingSubscriptions.size());
+//    for (final var sub : existingSubscriptions) {
+//      graphClient.subscriptions(sub.subscriptionId).buildRequest().delete();
+//      System.out.println("Deleting subscription: " + sub.subscriptionId);
+//    }
 
     final var graphClient2 = GraphClientHelper.getGraphClient(oauthClient2);
 
@@ -215,15 +216,15 @@ public class WatchController {
     body.content = "Hello from Java";
     chatMessageTemp.body = body;
 
-    graphClient2
-        .teams("b158572b-3596-4340-927e-659fe6d916d0")
-        .channels("19:403409664c6249149d53e882a7647df7@thread.tacv2")
-        .messages()
-        .buildRequest()
-        .post(chatMessageTemp);
+//    graphClient2
+//        .teams("b158572b-3596-4340-927e-659fe6d916d0")
+//        .channels("19:403409664c6249149d53e882a7647df7@thread.tacv2")
+//        .messages()
+//        .buildRequest()
+//        .post(chatMessageTemp);
 
     String certificate = certificateStore.getBase64EncodedCertificate();
-    System.out.println(certificate);
+//    System.out.println(certificate);
 
     // Create the subscription
     final var subscriptionRequest = new Subscription();
@@ -236,11 +237,10 @@ public class WatchController {
     subscriptionRequest.clientState = UUID.randomUUID().toString();
     subscriptionRequest.includeResourceData = true;
 //        subscriptionRequest.includeResourceData = false;
-    subscriptionRequest.expirationDateTime = OffsetDateTime.now().plusHours(1);
+    subscriptionRequest.expirationDateTime =
+        OffsetDateTime.now().plusMinutes(10);
     subscriptionRequest.encryptionCertificate = certificate;
     subscriptionRequest.encryptionCertificateId = certificateStore.getCertificateId();
-
-
 
     return graphClient
         .subscriptions()

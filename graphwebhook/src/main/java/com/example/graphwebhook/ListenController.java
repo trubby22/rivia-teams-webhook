@@ -108,7 +108,7 @@ public class ListenController {
    */
   @PostMapping("/listen")
   public CompletableFuture<ResponseEntity<String>> handleNotification(
-      @RequestBody final String jsonPayload) throws JsonProcessingException {
+      @RequestBody final String jsonPayload) throws IOException {
 
     System.out.println("New notification received");
     System.out.println();
@@ -149,7 +149,9 @@ public class ListenController {
           } else {
             // With encrypted content, this is a new channel message
             // notification with encrypted resource data
-            processNewChannelMessageNotification(notification, subscription,
+            processNewChannelMessageNotification(
+                notification,
+                subscription,
                 jsonPayload);
 //            processNewMessageNotification(notification, subscription, jsonPayload);
           }
@@ -229,10 +231,14 @@ public class ListenController {
                     socketIONamespace
                         .getRoomOperations(subscription.subscriptionId)
                         .sendEvent("notificationReceived",
-                            new NewChatMessageNotification(message,
-                                subscription, authorizedClientService,
+                            new NewChatMessageNotification(
+//                                message,
+//                                subscription,
+//                                authorizedClientService,
                                 jsonPayload));
                   } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                  } catch (IOException e) {
                     throw new RuntimeException(e);
                   }
                 });
@@ -248,7 +254,7 @@ public class ListenController {
       @NonNull final ChangeNotification notification,
       @NonNull final SubscriptionRecord subscription,
       String jsonPayload)
-      throws JsonProcessingException {
+      throws IOException {
     Objects.requireNonNull(notification);
     Objects.requireNonNull(subscription);
 
@@ -274,8 +280,11 @@ public class ListenController {
       socketIONamespace
           .getRoomOperations(subscription.subscriptionId)
           .sendEvent("notificationReceived",
-              new NewChatMessageNotification(chatMessage, subscription,
-                  authorizedClientService, decryptedData));
+              new NewChatMessageNotification(
+//                  chatMessage,
+//                  subscription,
+//                  authorizedClientService,
+                  decryptedData));
     }
   }
 
