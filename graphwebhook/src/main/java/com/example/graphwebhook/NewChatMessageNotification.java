@@ -196,11 +196,11 @@ public class NewChatMessageNotification {
         attachments.contentType = "application/vnd.microsoft.card.thumbnail";
         attachments.contentUrl = null;
         attachments.content =
-            """
+            String.format("""
                 {
                   "subtitle": "<h3>Please rate the meeting</h3>",
-                  "text": "<a href=\\"https://app.rivia.me/?meetingId=${meetingId}\\">app.rivia.me</a>"
-                }""";
+                  "text": "<a href=\\"https://app.rivia.me/?meetingId=%s\\">app.rivia.me</a>"
+                }""", meetingId);
         attachments.name = null;
         attachments.thumbnailUrl = null;
         attachmentsList.add(attachments);
