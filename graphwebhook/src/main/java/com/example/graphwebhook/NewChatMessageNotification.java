@@ -117,6 +117,11 @@ public class NewChatMessageNotification {
     }
   }
 
+  private class PostMeetingResponse {
+    @SerializedName("meetingId")
+    String meetingId;
+  }
+
   public NewChatMessageNotification(
       //      @NonNull ChatMessage message,
       //      @NonNull final SubscriptionRecord subscription,
@@ -175,6 +180,9 @@ public class NewChatMessageNotification {
         }
         System.out.println(statusCode);
         System.out.println(responseBody);
+        PostMeetingResponse postMeetingResponse =
+            gson.fromJson(responseBody, PostMeetingResponse.class);
+        String meetingId = postMeetingResponse.meetingId;
 
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.subject = null;
@@ -187,7 +195,12 @@ public class NewChatMessageNotification {
         attachments.id = "74d20c7f34aa4a7fb74e2b30004247c5";
         attachments.contentType = "application/vnd.microsoft.card.thumbnail";
         attachments.contentUrl = null;
-        attachments.content = "{\n  \"subtitle\": \"<h3>Please rate the meeting</h3>\",\n  \"text\": \"<a href=\\\"https://app.rivia.me\\\">app.rivia.me</a>\"\n}";
+        attachments.content =
+            """
+                {
+                  "subtitle": "<h3>Please rate the meeting</h3>",
+                  "text": "<a href=\\"https://app.rivia.me/?meetingId=${meetingId}\\">app.rivia.me</a>"
+                }""";
         attachments.name = null;
         attachments.thumbnailUrl = null;
         attachmentsList.add(attachments);

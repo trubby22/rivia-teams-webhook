@@ -1,0 +1,25 @@
+azure:
+  activedirectory:
+    keydiscoveryurl: https://login.microsoftonline.com/common/discovery/keys
+    tenant-id: b0c9e4f9-d72d-406f-b247-e8d86c4b416a
+    client-id: 8814c436-20b8-4a4d-ab5f-c49d6837c000
+    client-secret: jYY8Q~l1fsPfYOzOZ0P16dAA24KQjDUqiKcSXb0A
+    post-logout-redirect-uri: https://google.com
+    authorization-clients:
+      graph:
+        scopes: user.read, mail.read
+      apponly:
+        authorization-grant-type: client-credentials
+        scopes: https://graph.microsoft.com/.default
+
+app:
+  protect:
+    authenticated: /delegated, /apponly
+
+notifications:
+  host: https://8fd4-92-40-176-205.eu.ngrok.io
+
+certificate:
+  storename: JKSkeystore.jks
+  storepass: 123456
+  alias: selfsignedjks
