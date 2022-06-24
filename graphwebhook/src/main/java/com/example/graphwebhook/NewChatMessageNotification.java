@@ -118,7 +118,7 @@ public class NewChatMessageNotification {
   }
 
   private class PostMeetingResponse {
-    @SerializedName("meetingId")
+    @SerializedName("jsonData")
     String meetingId;
   }
 
